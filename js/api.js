@@ -177,6 +177,26 @@ export async function listarUsuarios() {
 }
 
 /**
+ * Visão geral e moderação do admin (SÓ admin — o backend revalida o papel
+ * em toda chamada; o front é só conveniência).
+ *
+ *  * obterResumoAdmin — GET /admin/resumo: totais agregados (usuários por
+ *    papel, vídeos por status, dias de estudo). O bloco "estudos" pode vir
+ *    null quando a tabela dias_estudo não está disponível — o cartão some,
+ *    o resto do resumo segue de pé;
+ *  * listarVideosAdmin — GET /admin/videos: catálogo COMPLETO com dono,
+ *    status bruto e views. Apagar daqui é o apagarVideo de sempre
+ *    (DELETE /videos/{id} já aceita admin).
+ */
+export async function obterResumoAdmin() {
+  return requestJson("/admin/resumo");
+}
+
+export async function listarVideosAdmin() {
+  return requestJson("/admin/videos");
+}
+
+/**
  * Vídeos do professor (propriedade — migração 002).
  *
  *  * buscarMeusVideos — GET /meus-videos: só os vídeos DO professor logado

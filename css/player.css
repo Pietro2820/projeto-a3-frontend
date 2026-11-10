@@ -922,6 +922,49 @@ a.home-card .card-content {
   color: var(--muted);
 }
 
+/* Cartões da visão geral (GET /admin/resumo) — grade responsiva que quebra
+   de linha sem media query: cada cartão tem mínimo de 200px. */
+.painel-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.stat-card {
+  padding: 16px 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.stat-valor {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stat-rotulo {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+}
+
+.stat-detalhe {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Célula "Sem dono" na moderação (vídeo de conta apagada). */
+.celula-muted {
+  color: var(--muted);
+  font-style: italic;
+}
+
 .painel-form {
   display: grid;
   gap: 14px;

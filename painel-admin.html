@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Painel do administrador — criação de professores e usuários">
+  <meta name="description" content="Painel do administrador — visão geral, professores, usuários e moderação de vídeos">
   <title>EduStream — Painel do admin</title>
   <link rel="stylesheet" href="./css/player.css">
 </head>
@@ -18,6 +18,20 @@
   </header>
 
   <main class="page">
+
+    <!-- Visão geral (GET /admin/resumo — guard de admin no backend):
+         números agregados da plataforma. O cartão de estudos só aparece
+         quando o backend devolve o bloco (tabela dias_estudo disponível). -->
+    <section class="painel-secao" aria-labelledby="tituloResumo">
+      <h2 id="tituloResumo">Visão geral</h2>
+      <p class="painel-descricao">
+        Números da plataforma agora: usuários por papel, vídeos por status
+        de processamento e dias de estudo registrados.
+      </p>
+
+      <div class="painel-stats" id="gradeResumo"></div>
+      <p class="empty-state" id="resumoAviso" hidden></p>
+    </section>
 
     <!-- Criar conta de professor (POST /admin/professores — guard de admin
          no backend): a conta nasce com senha temporária e o 1º acesso do
@@ -64,6 +78,32 @@
         <tbody id="corpoUsuarios"></tbody>
       </table>
       <p class="empty-state" id="usuariosAviso" hidden></p>
+    </section>
+
+    <!-- Moderação de vídeos (GET /admin/videos + DELETE /videos/{id} — o
+         guard de dono deixa o admin passar por herança de papel). -->
+    <section class="painel-secao" aria-labelledby="tituloVideos">
+      <h2 id="tituloVideos">Vídeos da plataforma</h2>
+      <p class="painel-descricao">
+        Catálogo completo — de qualquer professor, com dono, status e views.
+        Apagar aqui é moderação: a ação pede confirmação e não tem desfazer.
+      </p>
+
+      <table class="painel-table" id="tabelaVideos" hidden>
+        <thead>
+          <tr>
+            <th scope="col">Título</th>
+            <th scope="col">Dono</th>
+            <th scope="col">Categoria</th>
+            <th scope="col">Status</th>
+            <th scope="col">Views</th>
+            <th scope="col">Enviado em</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpoVideos"></tbody>
+      </table>
+      <p class="empty-state" id="videosAviso" hidden></p>
     </section>
   </main>
 
