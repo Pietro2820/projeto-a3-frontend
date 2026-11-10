@@ -743,3 +743,216 @@ a.home-card .card-content {
 }
 
 .player-error a:hover { background: var(--surface-2); }
+
+/* ===========================================================================
+   Papéis, propriedade e streak (migração 002) — painéis e card do estudante
+   =========================================================================== */
+
+/* Título simples na topbar das páginas de painel (entre brand e perfil). */
+.topbar-titulo {
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Atalho de painel na topbar (professor → Meus vídeos; admin → Painel). */
+.topbar-atalho {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 14px;
+  color: var(--text);
+  background: var(--surface);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.topbar-atalho:hover {
+  background: var(--surface-2);
+}
+
+/* Card de sequência de estudos — só o estudante vê (privacidade combinada). */
+.streak-card {
+  margin-bottom: 22px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.streak-conteudo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.streak-numero {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.streak-numero strong {
+  font-size: 40px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.streak-numero span {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.streak-mensagem {
+  margin: 0;
+  color: var(--text);
+}
+
+.streak-marco {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+
+/* Tabelas dos painéis (Meus vídeos e Usuários do admin). */
+.painel-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.painel-table th,
+.painel-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.painel-table th {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.painel-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Selo de status do vídeo / papel do usuário. */
+.badge-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.badge-completed  { border-color: #2e7d32; color: #7bd88a; }
+.badge-processing { border-color: #b26a00; color: #ffb74d; }
+.badge-pending    { border-color: #455a64; color: #b0bec5; }
+.badge-failed     { border-color: #b71c1c; color: #ef9a9a; }
+
+.badge-papel-admin     { border-color: #6a1b9a; color: #ce93d8; }
+.badge-papel-professor { border-color: #1565c0; color: #90caf9; }
+.badge-papel-estudante { border-color: #455a64; color: #b0bec5; }
+
+/* Botões de ação (linhas de tabela e barra do dono na watch page). */
+.btn-acao {
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btn-acao:hover {
+  border-color: var(--muted);
+}
+
+.btn-acao-perigo:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.painel-table .acoes {
+  display: flex;
+  gap: 8px;
+}
+
+/* Barra de ações do dono na watch page (Editar/Apagar do próprio vídeo). */
+.acoes-video-container:empty {
+  display: none;
+}
+
+.acoes-video {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 4px;
+}
+
+/* Seções do painel admin. */
+.painel-secao {
+  margin-bottom: 34px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.painel-secao h2 {
+  margin-top: 0;
+}
+
+.painel-descricao {
+  color: var(--muted);
+}
+
+.painel-form {
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+}
+
+.painel-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.painel-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.input-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.input-inline input {
+  flex: 1;
+}
+
+/* Estudante não vê o botão de upload (o backend devolveria 403). */
+.topbar-upload.hidden {
+  display: none;
+}
