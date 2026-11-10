@@ -217,3 +217,65 @@ export function preservarProximo(link) {
     link.href = `${link.getAttribute("href")}?proximo=${encodeURIComponent(proximo)}`;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Higiene de credenciais na URL (revisão de segurança)
+ * ------------------------------------------------------------------------- */
+
+/** Nomes de parâmetro que NUNCA podem ficar na URL de uma tela de auth. */
+const PARAMETROS_CREDENCIAIS = new Set([
+  "email", "login", "usuario", "user", "username",
+  "senha", "password", "pass", "pwd", "token",
+]);
+
+/**
+ * Remove e-mail/senha/token da query string da página atual
+ * (history.replaceState — sem recarregar, sem nova entrada no histórico).
+ *
+ * Por quê: se o formulário chegou a enviar nativamente (JS falhou — módulo
+ * bloqueado, abertura via file://), as credenciais ficam na barra de
+ * endereço, no histórico do navegador e em access logs. Ao carregar a página,
+ * a URL é limpa e os valores NÃO são usados para nada — o único parâmetro
+ * que a tela de auth consome é o ?proximo (allowlist em js/sessao.js).
+ *
+ * Aceita { history, location } injetáveis para o teste afirmar sem dublar
+ * globals (o jsdom permite replaceState real, mas a injeção deixa o contrato
+ * explícito).
+ *
+ * Devolve true quando algo foi removido.
+ */
+export function limparCredenciaisDaUrl({ history, location } = {}) {
+  const loc = location || window.location;
+  const hist = history || window.history;
+
+  const params = new URLSearchParams(loc.search);
+  let removeu = false;
+  for (const nome of [...params.keys()]) {
+    if (PARAMETROS_CREDENCIAIS.has(nome.toLowerCase())) {
+      params.delete(nome);
+      removeu = true;
+    }
+  }
+  if (!removeu) return false;
+
+  const query = params.toString();
+  hist.replaceState(
+    null,
+    "",
+    `${loc.pathname}${query ? `?${query}` : ""}${loc.hash}`
+  );
+  return true;
+}
+
+/**
+ * Zera campos de senha após o envio (sucesso ou erro) e garante que voltaram
+ * ao modo oculto — a senha não fica pendurada no DOM nem visível por um
+ * toggle esquecido no estado "mostrar".
+ */
+export function limparSenhas(...campos) {
+  for (const campo of campos) {
+    if (!campo) continue;
+    campo.value = "";
+    if (campo.type === "text") campo.type = "password";
+  }
+}

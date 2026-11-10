@@ -22,7 +22,12 @@
         <p>Acesse sua conta para continuar assistindo</p>
       </header>
 
-      <form id="loginForm" novalidate>
+      <!-- method="post" é defesa em profundidade: se o módulo JS falhar
+           (módulo ES bloqueado, abertura via file://, script 404), o envio
+           nativo do formulário NUNCA vira GET com ?email=&senha= na URL —
+           o POST leva as credenciais no corpo, invisível na barra de
+           endereço, no histórico e nos access logs. -->
+      <form id="loginForm" method="post" action="#" novalidate>
 
         <!-- E-mail -->
         <div class="field">

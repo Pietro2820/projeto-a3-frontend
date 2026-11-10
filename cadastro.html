@@ -22,7 +22,10 @@
         <p>Crie sua conta para começar a assistir</p>
       </header>
 
-      <form id="cadastroForm" novalidate>
+      <!-- method="post" action="#" — mesma defesa em profundidade do login:
+           sem JS, o submit nativo posta para a própria página em vez de
+           virar GET com credenciais na query string. -->
+      <form id="cadastroForm" method="post" action="#" novalidate>
 
         <!-- Nome -->
         <div class="field">

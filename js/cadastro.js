@@ -24,6 +24,8 @@ import {
   definirCarregando,
   ligarToggleSenha,
   limparAviso,
+  limparCredenciaisDaUrl,
+  limparSenhas,
   preservarProximo,
   revalidarAoDigitar,
   tratarErroApi,
@@ -55,6 +57,10 @@ const linkLogin = document.querySelector("#linkLogin");
 /* Mostrar/esconder senha (os dois campos de senha) + aviso de Caps Lock. */
 ligarToggleSenha(document.querySelector("#toggleSenhaCadastro"), campoSenha, capsAviso);
 ligarToggleSenha(document.querySelector("#toggleSenhaConfirmar"), campoConfirmar, capsAvisoConfirmar);
+
+/* Credenciais na URL? Limpa já (mesma higiene da tela de login) e NÃO usa os
+ * valores — o único parâmetro que interessa aqui é o ?proximo. */
+limparCredenciaisDaUrl();
 
 /* O link "Entrar" leva o ?proximo de volta para o login. */
 preservarProximo(linkLogin);
@@ -120,6 +126,7 @@ async function enviar(evento) {
     });
 
     entrar(resposta.usuario);
+    limparSenhas(campoSenha, campoConfirmar); // nada de senha pendurada no DOM
     irParaDestino();
   } catch (erro) {
     tratarErroApi(erro, {
@@ -129,6 +136,7 @@ async function enviar(evento) {
       erroSenha,
       aviso,
     });
+    limparSenhas(campoSenha, campoConfirmar); // reenvio começa do zero
     definirCarregando(botaoEnviar, false);
   }
 }

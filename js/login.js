@@ -19,11 +19,13 @@
  * js/formulario.js (compartilhado com o cadastro).
  */
 import { loginUsuario } from "./api.js";
-import { entrar, irParaDestino } from "./sessao.js";
+import { entrar, irParaDestino, retomarSessao } from "./sessao.js";
 import {
   definirCarregando,
   ligarToggleSenha,
   limparAviso,
+  limparCredenciaisDaUrl,
+  limparSenhas,
   mostrarAviso,
   preservarProximo,
   revalidarAoDigitar,
@@ -57,10 +59,27 @@ revalidarAoDigitar(campoEmail, () => validarEmail(campoEmail, erroEmail));
 revalidarAoDigitar(campoSenha, () => validarSenha(campoSenha, erroSenha));
 
 /* ---------------------------------------------------------------------------
+ * Higiene de segurança ao carregar a tela
+ * ------------------------------------------------------------------------- */
+
+/* Se esta página foi aberta com credenciais na URL (ex.: submit nativo que
+ * escapou num ambiente sem JS, ou link colado à mão), a query é limpa AGORA
+ * e os valores NÃO são usados para nada — só o ?proximo interessa. */
+limparCredenciaisDaUrl();
+
+/* Sessão viva? ("Lembrar de mim" deixa um cookie HttpOnly válido mesmo com o
+ * sessionStorage vazio — retomarSessao pergunta ao servidor via GET /sessao;
+ * 401/falha de rede simplesmente deixa a tela de login normal.) */
+void retomarSessao();
+
+/* ---------------------------------------------------------------------------
  * Envio do LOGIN (POST /login real)
  * ------------------------------------------------------------------------- */
 
 async function enviar(evento) {
+  // PRIMEIRA instrução do handler: nunca deixar o submit nativo escapar —
+  // com method="post" + action="#" o fallback até seria seguro (POST sem
+  // query), mas aqui a resposta sai via fetch com corpo JSON.
   evento.preventDefault();
   limparAviso(aviso);
 
@@ -79,19 +98,28 @@ async function enviar(evento) {
 
   definirCarregando(botaoEnviar, true);
 
+  // "Lembrar de mim" NUNCA guarda a senha — com sessão por cookie HttpOnly
+  // o que ele muda é a validade do cookie no servidor (Max-Age de LEMBRAR_DIAS
+  // em vez de cookie de sessão). A senha existe só neste request.
+  const lembrar = document.querySelector("#lembrar")?.checked ?? false;
+
   try {
     const resposta = await loginUsuario({
       email: campoEmail.value.trim(),
       senha: campoSenha.value,
+      lembrar,
     });
 
-    // O backend devolve { usuario: { usuario_id, nome, email } }.
+    // O backend devolve { usuario: { usuario_id, nome, email } } e deixou o
+    // cookie de sessão HttpOnly no navegador (invisível para este JS).
     entrar(resposta.usuario);
+    limparSenhas(campoSenha); // a senha morre com o request — nada pendurado
     // Vai para o ?proximo validado (allowlist em js/sessao.js) — ou para a
     // home quando o login foi direto pela tela.
     irParaDestino();
   } catch (erro) {
     tratarErroApi(erro, { campoEmail, erroEmail, campoSenha, erroSenha, aviso });
+    limparSenhas(campoSenha); // erro também limpa — relogin começa do zero
     definirCarregando(botaoEnviar, false);
   }
 }
