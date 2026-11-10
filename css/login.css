@@ -76,11 +76,11 @@
   font-size: 14px;
 }
 
-/* ---------------------------------------------------------------------------
-   Campos com ícone à esquerda
-   --------------------------------------------------------------------------- */
-/* Os dois formulários (login e cadastro) compartilham o mesmo layout de card:
-   coluna única com espaçamento constante — troca de formulário não "pula". */
+#loginForm[hidden],
+#cadastroForm[hidden] {
+  display: none;
+}
+
 #loginForm,
 #cadastroForm {
   display: flex;
