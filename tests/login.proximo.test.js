@@ -62,6 +62,10 @@ async function importarLogin() {
   jest.unstable_mockModule("../js/sessao.js", () => ({
     entrar: jest.fn(),
     irParaDestino: jest.fn(),
+    // retomarSessao: login.js chama ao carregar (retomada via cookie
+    // HttpOnly). Dublê que não faz nada mantém o teste focado no contrato
+    // do submit; a função real tem suíte própria (tests/seguranca.test.js).
+    retomarSessao: jest.fn(async () => false),
   }));
   const sessaoDuble = await import("../js/sessao.js");
   await import("../js/login.js");

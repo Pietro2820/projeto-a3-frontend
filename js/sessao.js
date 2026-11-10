@@ -24,6 +24,8 @@
  * do guard tem suíte própria (tests/sessao.test.js).
  */
 
+import { buscarSessao, encerrarSessao } from "./api.js";
+
 const CHAVE_SESSAO = "edustream.usuario";
 
 /** Páginas para onde o ?proximo pode mandar o usuário depois do login. */
@@ -66,7 +68,51 @@ export function entrar(usuario) {
 /** Encerra a sessão e volta para a tela de login. */
 export function sair({ navegar = navegarPadrao } = {}) {
   sessionStorage.removeItem(CHAVE_SESSAO);
+
+  // Logout REAL: revoga o token no servidor (cookie HttpOnly). Fire-and-
+  // forget com falha silenciosa — se a API estiver fora, a cópia local
+  // morreu do mesmo jeito e o usuário já está na tela de login.
+  try {
+    if (typeof fetch === "function") {
+      void encerrarSessao().catch(() => {});
+    }
+  } catch {
+    /* fetch indisponível (ex.: jsdom antigo) — o logout local segue */
+  }
+
   navegar(PAGINA_LOGIN);
+}
+
+/**
+ * Retoma a sessão na TELA DE LOGIN (chamado por js/login.js ao carregar).
+ *
+ * Duas situações — "Lembrar de mim" (cookie com Max-Age) e reinício do
+ * navegador deixam um cookie HttpOnly válido no cliente, mas INVISÍVEL para
+ * o JS; o sessionStorage pode estar vazio mesmo com sessão viva:
+ *
+ *  1. já há dados locais (sessão da aba): vai direto para o destino;
+ *  2. sem dados locais: pergunta ao servidor (GET /sessao) — cookie válido
+ *     repõe a sessão e segue para o ?proximo; 401/falha de rede fica na
+ *     tela de login normal.
+ *
+ * O guard das páginas protegidas (exigirLogin) NÃO mudou: continua síncrono
+ * contra o sessionStorage (sem flicker de rede a cada página). A revalidação
+ * de verdade acontece aqui, na porta de entrada do login.
+ */
+export async function retomarSessao({ navegar = navegarPadrao } = {}) {
+  if (usuarioAtual()) {
+    irParaDestino({ navegar });
+    return true;
+  }
+
+  try {
+    const resposta = await buscarSessao();
+    entrar(resposta.usuario);
+    irParaDestino({ navegar });
+    return true;
+  } catch {
+    return false; // 401 = sem sessão; falha de rede = tela normal
+  }
 }
 
 /**

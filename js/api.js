@@ -30,6 +30,10 @@ export class ApiError extends Error {
 
 async function requestJson(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    // credentials "include": envia e aceita o cookie de sessão
+    // (edustream_sessao, HttpOnly) — mesma origem (/player) funciona igual;
+    // no dev por Live Server é o que faz o cookie cruzar :5500 → :8000.
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {})
@@ -120,6 +124,25 @@ export async function cadastrarUsuario(payload) {
     method: "POST",
     body: JSON.stringify(payload)
   });
+}
+
+/**
+ * Sessão por cookie HttpOnly (revisão de segurança): o token NÃO é lido por
+ * JS — quem valida é o servidor.
+ *
+ *  * buscarSessao — GET /sessao: com cookie válido devolve { usuario }; 401
+ *    quando inexistente/expirada (é o que o guard da tela de login consulta
+ *    para retomar a sessão de um "Lembrar de mim");
+ *  * encerrarSessao — POST /logout: revoga o token NO SERVIDOR e o backend
+ *    limpa o cookie; falha de rede é ignorável (o front já derrubou a cópia
+ *    local).
+ */
+export async function buscarSessao() {
+  return requestJson("/sessao");
+}
+
+export async function encerrarSessao() {
+  return requestJson("/logout", { method: "POST" });
 }
 
 /**

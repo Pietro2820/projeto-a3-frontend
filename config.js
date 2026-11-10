@@ -38,6 +38,17 @@ window.PLAYER_CONFIG = window.PLAYER_CONFIG || {};
     config.API_BASE_URL ||
     (servidoPeloBackend ? window.location.origin : "http://localhost:8000");
 
+  // POR AMBIENTE (revisão de segurança): a regra acima cobre o dev. Em
+  // produção (HTTPS na frente da API — Caddy/nginx), defina a URL pública
+  // explicitamente. Jeitos aceitos, do mais explícito para o mais simples:
+  //
+  //   config.local.js (não commitado):   config.API_BASE_URL = "https://api.seudominio.com";
+  //   override por ambiente no deploy:   <script> antes do config.js com
+  //                                      window.PLAYER_CONFIG.API_BASE_URL = ...
+  // Regra prática: HTTP em localhost é SÓ desenvolvimento — em qualquer host
+  // público, a URL da API deve ser https:// (o cookie da sessão vai com
+  // Secure e o navegador recusa Secure em HTTP).
+
   // ---------------------------------------------------------------------
   // Quem assiste (alimenta POST /watch → /trending e /recomendacoes).
   // Troque pelo usuário real quando a autenticação entrar no projeto.
