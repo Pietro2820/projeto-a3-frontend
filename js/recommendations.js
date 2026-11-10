@@ -95,8 +95,7 @@ function createCard(video, compact = false) {
 
   article.innerHTML = `
     <div class="thumbnail">
-      <img src="${escapeHtml(thumbnail)}" alt="" loading="lazy"
-           onerror="this.onerror=null;this.src='${THUMBNAIL_PADRAO}';">
+      <img src="${escapeHtml(thumbnail)}" alt="" loading="lazy">
       <span class="thumbnail-duration">${escapeHtml(video.duration || "")}</span>
       ${badge}
     </div>
@@ -105,6 +104,16 @@ function createCard(video, compact = false) {
       <div class="card-meta">${escapeHtml(video.views || "")}</div>
     </div>
   `;
+
+  // Fallback de thumbnail via listener (NÃO handler inline): com o CSP do
+  // backend (`script-src 'self'`, sem 'unsafe-inline') handlers inline como
+  // onerror="..." são bloqueados — o plano B da imagem nunca executava.
+  const img = article.querySelector("img");
+  img.addEventListener("error", () => {
+    if (img.dataset.fallbackAplicado) return; // evita loop se o padrão falhar
+    img.dataset.fallbackAplicado = "1";
+    img.src = THUMBNAIL_PADRAO;
+  });
 
   const selecionar = () => {
     const event = new CustomEvent("video-selected", {
