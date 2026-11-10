@@ -61,6 +61,11 @@
   </div>
 
   <main class="page home-page">
+    <!-- Card de sequência de estudos (só ESTUDANTE — js/streak.js mostra;
+         professor/admin não têm streak e ganham atalho do painel). -->
+    <section class="streak-card hidden" id="streakCard"
+             aria-label="Sequência de estudos"></section>
+
     <div class="section-title-row home-title-row">
       <h2 id="homeTitle">Catálogo</h2>
       <span class="home-count" id="homeCount"></span>
@@ -90,5 +95,8 @@
        levando a página atual como ?proximo. -->
   <script type="module" src="./js/sessao.js"></script>
   <script type="module" src="./js/home.js"></script>
+  <!-- Papel na tela: card de streak do estudante, atalho do painel do
+       professor/admin e o botão de upload só para quem pode usá-lo. -->
+  <script type="module" src="./js/streak.js"></script>
 </body>
 </html>

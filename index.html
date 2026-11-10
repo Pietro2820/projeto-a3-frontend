@@ -118,6 +118,10 @@
             <span id="currentQuality">Qualidade: Auto</span>
           </div>
 
+          <!-- Ações do DONO (migração 002): Editar/Apagar aparecem aqui só
+               para quem o backend reconhece como dono — js/dono.js decide. -->
+          <div id="videoAcoes" class="acoes-video-container"></div>
+
           <div class="description" id="description">
             O catálogo é carregado do banco de dados pela API
             (GET /catalogo). Escolha um vídeo na home ou aguarde a seleção
@@ -156,5 +160,9 @@
   -->
   <script src="./vendor/hls.min.js"></script>
   <script type="module" src="./js/player.js"></script>
+  <!-- Fim da exibição = dia de estudo (POST /watch concluido=true). -->
+  <script type="module" src="./js/conclusao.js"></script>
+  <!-- Editar/Apagar — só para o dono do vídeo (ou admin). -->
+  <script type="module" src="./js/dono.js"></script>
 </body>
 </html>
