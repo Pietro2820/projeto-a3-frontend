@@ -146,6 +146,74 @@ export async function encerrarSessao() {
 }
 
 /**
+ * Papéis e contas (migração 002 — admin/professor/estudante).
+ *
+ * O usuário devolvido por login/cadastro/sessão agora carrega `role` e
+ * `primeiro_acesso`: o roteamento por papel é feito no js/sessao.js e a
+ * conta de 1º acesso é levada à tela de troca de senha.
+ *
+ *  * trocarSenha — POST /trocar-senha {senha_atual, nova_senha}: libera a
+ *    conta de 1º acesso e atualiza a senha; devolve { usuario } atualizado.
+ *  * criarProfessor — POST /admin/professores (SÓ admin): nasce com senha
+ *    temporária e primeiro_acesso=true.
+ *  * listarUsuarios — GET /admin/usuarios (SÓ admin): painel sem senha_hash.
+ */
+export async function trocarSenha(payload) {
+  return requestJson("/trocar-senha", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function criarProfessor(payload) {
+  return requestJson("/admin/professores", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function listarUsuarios() {
+  return requestJson("/admin/usuarios");
+}
+
+/**
+ * Vídeos do professor (propriedade — migração 002).
+ *
+ *  * buscarMeusVideos — GET /meus-videos: só os vídeos DO professor logado
+ *    (qualquer status), com views; estudante recebe 403;
+ *  * salvarVideo — PATCH /videos/{id}: metadados, SÓ o dono (ou admin);
+ *  * apagarVideo — DELETE /videos/{id}: SÓ o dono (ou admin); não-dono
+ *    recebe 403 ("Este vídeo pertence a outro professor").
+ */
+export async function buscarMeusVideos() {
+  return requestJson("/meus-videos");
+}
+
+export async function salvarVideo(videoId, payload) {
+  return requestJson(`/videos/${encodeURIComponent(videoId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function apagarVideo(videoId) {
+  return requestJson(`/videos/${encodeURIComponent(videoId)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Sequência de estudos (streak) — GET /streak/meu, exclusivo do estudante.
+ *
+ * Calculado 100% no servidor (fuso America/Sao_Paulo): o front só desenha.
+ * Resposta: { streak, estudou_hoje, registrado_hoje, marco, mensagem } —
+ * marco é 3/7/30 quando um milestone foi alcançado, senão null.
+ */
+export async function buscarStreak() {
+  return requestJson("/streak/meu");
+}
+
+/**
  * Envia um vídeo novo (multipart/form-data) para o POST /upload.
  *
  * Não passa pelo requestJson de propósito: ele fixaria Content-Type

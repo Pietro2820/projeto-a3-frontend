@@ -15,6 +15,13 @@
  *  * Depois de autenticar, login.js chama irParaDestino(): devolve o usuário
  *    EXATAMENTE para onde ele ia (ex.: index.html?video=v1) — o ?proximo é
  *    validado por allowlist para não virar redirect aberto;
+ *  * PAPEIS (migração 002): sem ?proximo o destino é por papel — estudante
+ *    → home.html, professor → meus-videos.html, admin → painel-admin.html.
+ *    Conta de 1º acesso (primeiro_acesso=true) vai SEMPRE para
+ *    trocar-senha.html antes de qualquer outra página (o backend bloqueia
+ *    as rotas de qualquer forma — aqui é conveniência);
+ *  * exigirPapel(...) é o guard de página por papel: quem não tem o papel
+ *    volta para o próprio destino (redirecionamento mútuo);
  *  * O botão "Sair" da topbar limpa a sessão e volta ao login;
  *  * De quebra, o USER_ID do player (POST /watch → recomendações) passa a ser
  *    o usuário autenticado — antes era o "demo-user" do config.js.
@@ -29,10 +36,24 @@ import { buscarSessao, encerrarSessao } from "./api.js";
 const CHAVE_SESSAO = "edustream.usuario";
 
 /** Páginas para onde o ?proximo pode mandar o usuário depois do login. */
-const DESTINOS_PERMITIDOS = new Set(["home.html", "index.html"]);
+const DESTINOS_PERMITIDOS = new Set([
+  "home.html",
+  "index.html",
+  "meus-videos.html",
+  "painel-admin.html",
+  "trocar-senha.html",
+]);
+
+/** Destino padrão por papel (migração 002) — o ?proximo tem prioridade. */
+const DESTINOS_POR_PAPEL = {
+  estudante: "home.html",
+  professor: "meus-videos.html",
+  admin: "painel-admin.html",
+};
 
 const DESTINO_PADRAO = "./home.html";
 const PAGINA_LOGIN = "./login.html";
+const PAGINA_TROCAR_SENHA = "./trocar-senha.html";
 
 /**
  * Navegação padrão — a ÚNICA saída do módulo para window.location.
@@ -58,6 +79,28 @@ export function usuarioAtual() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Papel do usuário — SEMPRE com fallback "estudante".
+ *
+ * Sessões antigas (gravadas antes da migração 002) não têm role: tratá-las
+ * como estudante mantém o comportamento de antes — e o papel de VERDADE é
+ * revalidado pelo backend a cada request (o front é só conveniência).
+ */
+export function papelDoUsuario(usuario) {
+  return (usuario && usuario.role) || "estudante";
+}
+
+/** A conta foi criada pelo admin e ainda NÃO trocou a senha temporária? */
+export function primeiroAcessoPendente(usuario) {
+  return Boolean(usuario && usuario.primeiro_acesso);
+}
+
+/** Destino padrão do papel (estudante → home, professor → meus vídeos...). */
+export function destinoPorPapel(usuario) {
+  const destino = DESTINOS_POR_PAPEL[papelDoUsuario(usuario)] || "home.html";
+  return `./${destino}`;
 }
 
 /** Registra a sessão após o login (única porta de escrita da chave). */
@@ -158,15 +201,54 @@ export function exigirLogin({ navegar = navegarPadrao } = {}) {
   return null;
 }
 
-/** Depois do login: vai para o ?proximo validado (ou para a home). */
+/** Depois do login: 1º acesso → trocar senha; ?proximo → destino validado;
+ *  sem ?proximo → o destino do papel (estudante home, professor meus vídeos,
+ *  admin painel). */
 export function irParaDestino({ navegar = navegarPadrao } = {}) {
+  const usuario = usuarioAtual();
+
+  // 1º acesso manda SEMPRE: nem ?proximo vence — a troca de senha é a
+  // única rota que o backend libera para essa conta.
+  if (primeiroAcessoPendente(usuario)) {
+    navegar(PAGINA_TROCAR_SENHA);
+    return;
+  }
+
   const pedido = new URLSearchParams(window.location.search).get("proximo");
-  navegar(destinoSeguro(pedido));
+  if (pedido) {
+    navegar(destinoSeguro(pedido));
+    return;
+  }
+  navegar(destinoPorPapel(usuario));
 }
 
 /** A página atual é protegida pelo guard? (login.html nunca é.) */
 export function paginaProtegida() {
   return DESTINOS_PERMITIDOS.has(nomeDaPagina());
+}
+
+/**
+ * Guard de página POR PAPEL (migração 002) — usado por meus-videos.js
+ * (professor/admin) e painel-admin.js (só admin).
+ *
+ * Sem sessão → login (?proximo). Com sessão mas papel errado → devolve ao
+ * DESTINO DO PRÓPRIO PAPEL (redirecionamento mútuo: estudante esbarrando no
+ * painel do admin não fica em tela de erro — vai para onde pode usar).
+ * Conta de 1º acesso → trocar-senha.html (antes de qualquer papel).
+ */
+export function exigirPapel(papeis, { navegar = navegarPadrao } = {}) {
+  const usuario = exigirLogin({ navegar });
+  if (!usuario) return null;
+
+  if (primeiroAcessoPendente(usuario)) {
+    navegar(PAGINA_TROCAR_SENHA);
+    return null;
+  }
+  if (!papeis.includes(papelDoUsuario(usuario))) {
+    navegar(destinoPorPapel(usuario));
+    return null;
+  }
+  return usuario;
 }
 
 /**
@@ -179,6 +261,8 @@ export function paginaProtegida() {
  *    usuário;
  *  * página protegida sem sessão → navega para o login (?proximo) e devolve
  *    null;
+ *  * conta de 1º acesso fora da tela de troca de senha → navega para
+ *    trocar-senha.html e devolve null;
  *  * login.html → NÃO faz nada (guard aqui seria loop infinito de redirect).
  */
 export function inicializar({ navegar = navegarPadrao } = {}) {
@@ -186,6 +270,16 @@ export function inicializar({ navegar = navegarPadrao } = {}) {
 
   const usuario = exigirLogin({ navegar });
   if (!usuario) return null;
+
+  if (
+    primeiroAcessoPendente(usuario) &&
+    nomeDaPagina() !== "trocar-senha.html"
+  ) {
+    // A conta recém-criada pelo admin não usa a plataforma antes de trocar
+    // a senha temporária — o backend já bloqueia as rotas; aqui é o desvio.
+    navegar(PAGINA_TROCAR_SENHA);
+    return null;
+  }
 
   // Perfil: mostra de quem é a sessão (tooltip + leitores de tela).
   const botaoPerfil = document.querySelector("#profileButton");
@@ -213,11 +307,12 @@ export function inicializar({ navegar = navegarPadrao } = {}) {
 
 /* ---------------------------------------------------------------------------
  * Auto-inicialização — roda quando a página carrega o módulo diretamente
- * (home.html / index.html).
+ * (home.html / index.html / meus-videos.html / painel-admin.html /
+ * trocar-senha.html).
  *
  * A tela de login (login.html) NÃO é protegida — ela importa este módulo via
  * login.js (entrar/irParaDestino) e o guard dela seria um loop infinito de
  * redirect (sem sessão → login → sem sessão → ...). Por isso o guard só age
- * nas páginas da allowlist (home/index), que são exatamente as protegidas.
+ * nas páginas da allowlist, que são exatamente as protegidas.
  * ------------------------------------------------------------------------- */
 inicializar();

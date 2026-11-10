@@ -3,11 +3,15 @@
  *
  * Integração REAL com a API (branch feature/login-banco):
  *   - POST /login (app/auth/router.py) — valida e-mail+senha contra a tabela
- *     `usuarios` do Supabase e devolve os dados públicos do usuário;
+ *     `usuarios` do Supabase e devolve os dados públicos do usuário (agora
+ *     com `role` e `primeiro_acesso`);
  *   - após autenticar, a sessão fica em sessionStorage (chave
- *     "edustream.usuario", via js/sessao.js) e o usuário vai para o destino
- *     pedido no ?proximo — home.html, ou a watch page que disparou o login
- *     (ex.: index.html?video=v1). Sem ?proximo, cai na home.
+ *     "edustream.usuario", via js/sessao.js) e irParaDestino() roteia:
+ *       1. conta de 1º acesso (primeiro_acesso=true) → trocar-senha.html
+ *          — o backend bloqueia as demais rotas até a senha mudar;
+ *       2. ?proximo → o destino pedido (ex.: index.html?video=v1);
+ *       3. sem ?proximo → o destino do PAPEL: estudante → home.html,
+ *          professor → meus-videos.html, admin → painel-admin.html.
  *
  * Criar conta agora é uma PÁGINA PRÓPRIA (cadastro.html + js/cadastro.js):
  * o rodapé do card aponta para lá, e o ?proximo via junto no link

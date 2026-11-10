@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Trocar a senha temporária — EduStream">
+  <title>EduStream — Trocar senha</title>
+  <link rel="stylesheet" href="./css/player.css">
+  <link rel="stylesheet" href="./css/login.css">
+</head>
+<body class="login-body">
+
+  <main class="login-wrap">
+
+    <a class="brand login-brand" href="./home.html" aria-label="EduStream — voltar para o início">Edu<span>Stream</span></a>
+
+    <section class="login-card" aria-labelledby="trocarTitulo">
+
+      <header class="login-header">
+        <h1 id="trocarTitulo">Trocar senha</h1>
+        <p id="trocarSubtitulo">
+          Sua conta foi criada pelo administrador com uma senha temporária.
+          Escolha uma senha nova para continuar.
+        </p>
+      </header>
+
+      <!-- method="post" pela mesma defesa em profundidade do login: sem JS,
+           nada de credenciais na query string. -->
+      <form id="trocarForm" method="post" action="#" novalidate>
+
+        <!-- Senha atual (a temporária recebida do admin) -->
+        <div class="field">
+          <label for="senhaAtual">Senha atual</label>
+          <div class="input-wrap">
+            <svg class="input-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="senhaAtual" name="senhaAtual" placeholder="A senha que você acabou de usar"
+                   autocomplete="current-password" required>
+          </div>
+          <p class="field-erro" id="senhaAtualErro" hidden></p>
+        </div>
+
+        <!-- Senha nova -->
+        <div class="field">
+          <label for="novaSenha">Nova senha</label>
+          <div class="input-wrap">
+            <svg class="input-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="novaSenha" name="novaSenha" placeholder="Mínimo de 8 caracteres"
+                   autocomplete="new-password" minlength="8" required>
+          </div>
+          <p class="field-erro" id="novaSenhaErro" hidden></p>
+        </div>
+
+        <!-- Confirmação -->
+        <div class="field">
+          <label for="confirmarSenha">Confirmar nova senha</label>
+          <div class="input-wrap">
+            <svg class="input-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a senha nova"
+                   autocomplete="new-password" minlength="8" required>
+          </div>
+          <p class="field-erro" id="confirmarSenhaErro" hidden></p>
+        </div>
+
+        <button type="submit" class="btn-primary btn-entrar" id="btnTrocar">
+          <span class="rotulo">Salvar nova senha</span>
+          <span class="spinner-mini" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <p class="login-aviso" id="trocarAviso" role="status" hidden></p>
+    </section>
+
+    <p class="login-rodape">Projeto A3 · Garantia &amp; Qualidade de Software</p>
+  </main>
+
+  <script type="module" src="./js/trocar-senha.js"></script>
+</body>
+</html>
