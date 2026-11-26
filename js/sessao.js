@@ -40,6 +40,7 @@ const DESTINOS_PERMITIDOS = new Set([
   "home.html",
   "index.html",
   "meus-videos.html",
+  "upload.html",
   "painel-admin.html",
   "trocar-senha.html",
 ]);

@@ -1,7 +1,10 @@
 /**
- * Testes do upload pela interface (home → modal → POST /upload).
+ * Testes do upload pela interface (modal → POST /upload).
  *
- * Cobre o js/upload.js com o modal REAL da home.html (carregado no jsdom):
+ * Cobre o js/upload.js com o modal REAL da meus-videos.html (carregado no
+ * jsdom). A home não tem mais modal: o "Enviar vídeo" dela leva para a tela
+ * cheia upload.html (testada em tests/upload-pagina.test.js).
+ *
  * abrir/fechar, validação sem arquivo, caminho feliz (multipart + polling de
  * /status até completed + refresh do catálogo) e erro da API mostrando o
  * detail legível dentro do modal.
@@ -12,8 +15,8 @@ import { fileURLToPath } from "node:url";
 
 import { uploadVideo } from "../js/api.js";
 
-const homeHtml = readFileSync(
-  fileURLToPath(new URL("../home.html", import.meta.url)),
+const paginaComModal = readFileSync(
+  fileURLToPath(new URL("../meus-videos.html", import.meta.url)),
   "utf8"
 );
 
@@ -53,7 +56,7 @@ function mockarRotas({ uploadOk = true, detail = "Formato inválido." } = {}) {
 
 function subirHomeComModal() {
   jest.resetModules();
-  const pagina = new DOMParser().parseFromString(homeHtml, "text/html");
+  const pagina = new DOMParser().parseFromString(paginaComModal, "text/html");
   document.body.innerHTML = pagina.body.innerHTML;
 }
 
@@ -88,7 +91,7 @@ afterEach(() => {
 });
 
 describe("upload.js — modal", () => {
-  test("o botão da home abre e o × fecha", async () => {
+  test("o botão Enviar vídeo abre e o × fecha", async () => {
     mockarRotas();
     subirHomeComModal();
     await subirUiUpload();
@@ -145,28 +148,15 @@ describe("upload.js — caminho feliz", () => {
     expect(onSucesso).toHaveBeenCalled();
   });
 
-  test("a home recarrega o catálogo depois de publicar (fiação do onSucesso)", async () => {
-    const fetchMock = mockarRotas();
-    subirHomeComModal();
-    // Quem liga o onSucesso ao reload da grade é a home (home.js), não o
-    // upload.js isolado — por isso o teste sobe a página inteira.
-    await import("../js/home.js");
-    await flush(4);
+  test("a home não tem mais modal: Enviar vídeo leva para upload.html", () => {
+    const home = readFileSync(fileURLToPath(new URL("../home.html", import.meta.url)), "utf8");
+    const doc = new DOMParser().parseFromString(home, "text/html");
 
-    const antes = fetchMock.mock.calls.filter(([url]) =>
-      String(url).includes("/catalogo")).length;
-
-    preencherFormulario();
-    document.querySelector("#uploadForm")
-      .dispatchEvent(new Event("submit", { cancelable: true }));
-
-    // O polling de produção é de 2s: espera um pouco além dele.
-    await new Promise((resolver) => setTimeout(resolver, 2600));
-
-    const depois = fetchMock.mock.calls.filter(([url]) =>
-      String(url).includes("/catalogo")).length;
-    expect(depois).toBeGreaterThan(antes);
-  }, 10000);
+    expect(doc.querySelector("#uploadModal")).toBeNull();
+    const botao = doc.querySelector("#uploadOpenButton");
+    expect(botao.tagName).toBe("A");
+    expect(botao.getAttribute("href")).toBe("./upload.html");
+  });
 
   test("o modal fecha sozinho após o sucesso", async () => {
     mockarRotas();
@@ -241,6 +231,8 @@ describe("api.js — uploadVideo (multipart)", () => {
     expect(options.method).toBe("POST");
     expect(options.body).toBe(dados);
     expect(options.headers).toBeUndefined();
+    // Upload exige sessão: o cookie HttpOnly tem de ir junto.
+    expect(options.credentials).toBe("include");
   });
 
   test("erro da API vira Error com o detail", async () => {

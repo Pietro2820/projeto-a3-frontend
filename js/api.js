@@ -251,6 +251,9 @@ export async function buscarStreak() {
 export async function uploadVideo(formData) {
   const response = await fetch(`${API_BASE_URL}/upload`, {
     method: "POST",
+    // O upload exige sessão de professor/admin: o cookie HttpOnly precisa ir
+    // junto também quando o front está em outra porta (Live Server :5500).
+    credentials: "include",
     body: formData
   });
 
